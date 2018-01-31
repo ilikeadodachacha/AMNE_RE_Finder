@@ -10,7 +10,7 @@ class Dashboard extends React.Component {
       addr2: '',
       agencies: ''
     }
-    bindAll(this, 'handleChange', 'getCoordinates');
+    bindAll(this, 'handleChange', 'getCoordinates', 'getNearbyAgencies');
   }
 
   handleChange(e) {
@@ -24,12 +24,18 @@ class Dashboard extends React.Component {
 
   getCoordinates(e) {
     e.preventDefault();
-    const addr1 = this.state.addr1;
-    const addr2 = this.state.addr2;
     const url = '/api/geocode/json';
-    const coord1 = axios.get(url, { params: { address: addr1 } });
-    coord1
-      .then(response => console.log(response.data.results[0].geometry.location));
+    const coord1 = axios.get(url, { params: { address: this.state.addr1 } });
+    const coord2 = axios.get(url, { params: { address: this.state.addr2 } });
+    axios.all([coord1, coord2])
+      .then(coords => {
+        const latLngs = coords.map(coord => coord.data.results[0].geometry.location);
+        this.getNearbyAgencies(latLngs);
+      });
+  }
+
+  getNearbyAgencies(latLngs) {
+    console.log(latLngs);
   }
 
   render() {
