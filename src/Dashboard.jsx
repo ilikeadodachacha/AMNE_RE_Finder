@@ -1,5 +1,6 @@
 import React from 'react';
 import { bindAll } from 'lodash';
+import axios from 'axios';
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -25,7 +26,10 @@ class Dashboard extends React.Component {
     e.preventDefault();
     const addr1 = this.state.addr1;
     const addr2 = this.state.addr2;
-    console.log(addr1, addr2);
+    const url = '/api/geocode';
+    const coord1 = axios.get(url);
+    coord1
+      .then(response => console.log(response.data));
   }
 
   render() {

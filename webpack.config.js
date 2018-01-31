@@ -7,6 +7,12 @@ const config = {
     contentBase: './public',
     inline: true,
     port: 8080,
+    proxy: {
+      '/api/geocode': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+      },
+    },
   },
   module: {
     loaders: [
