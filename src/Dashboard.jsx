@@ -11,7 +11,11 @@ class Dashboard extends React.Component {
   render() {
     return (
       <div> 
-        Dashboard is up!
+        <form className="Search-form">
+          Address1: <input type="text" name="addr1" value="test"/><br />
+          Address2: <input type="text" name="addr2" value="test"/><br />
+          <input type="submit" />
+        </form>
       </div>
     )
   }
