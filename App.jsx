@@ -1,10 +1,11 @@
-import React from 'react'
+import React from 'react';
+import Dashboard from './Dashboard.jsx';
 
 class App extends React.Component {
   render() {
     return (
       <div> 
-        Up and running!
+        <Dashboard />
       </div> 
     )
   }
