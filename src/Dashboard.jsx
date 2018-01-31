@@ -9,7 +9,7 @@ class Dashboard extends React.Component {
       addr2: '',
       agencies: ''
     }
-    bindAll(this, 'handleChange');
+    bindAll(this, 'handleChange', 'getCoordinates');
   }
 
   handleChange(e) {
@@ -21,12 +21,19 @@ class Dashboard extends React.Component {
     this.setState(thisState);
   }
 
+  getCoordinates(e) {
+    e.preventDefault();
+    const addr1 = this.state.addr1;
+    const addr2 = this.state.addr2;
+    console.log(addr1, addr2);
+  }
+
   render() {
     return (
       <div> 
-        <form className="Search-form">
-          Address1: <input type="text" name="addr1" value={this.state.addr1} onChange={this.handleChange}/><br />
-          Address2: <input type="text" name="addr2" value={this.state.addr2} onChange={this.handleChange}/><br />
+        <form className="Search-form" onSubmit={this.getCoordinates}>
+          Address 1: <input type="text" name="addr1" value={this.state.addr1} onChange={this.handleChange}/><br />
+          Address 2: <input type="text" name="addr2" value={this.state.addr2} onChange={this.handleChange}/><br />
           <input type="submit" />
         </form>
       </div>
