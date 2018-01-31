@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+const axios = require('axios');
 
 const app = express();
 
@@ -9,7 +11,12 @@ app.listen(port, () => {
 });
 
 app.get(/geocode/, (req, res) => {
-  console.log(req.url, 'hit');
-  res.end('proxy return');
+  axios.get(`${process.env.GMAPS_URL}${req.url}`, { params: { key: process.env.GMAPS_API_KEY } })
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((e) => {
+      res.end(e);
+    });
 });
 
