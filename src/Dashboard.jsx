@@ -26,10 +26,10 @@ class Dashboard extends React.Component {
     e.preventDefault();
     const addr1 = this.state.addr1;
     const addr2 = this.state.addr2;
-    const url = '/api/geocode';
-    const coord1 = axios.get(url);
+    const url = '/api/geocode/json';
+    const coord1 = axios.get(url, { params: { address: addr1 } });
     coord1
-      .then(response => console.log(response.data));
+      .then(response => console.log(response.data.results[0].geometry.location));
   }
 
   render() {
