@@ -1,3 +1,5 @@
+const Dotenv = require('dotenv-webpack');
+
 const config = {
   entry: './src/main.jsx',
   output: {
@@ -14,6 +16,12 @@ const config = {
       },
     },
   },
+  plugins: [
+    new Dotenv({
+      path: './.env',
+      safe: true,
+    }),
+  ],
   module: {
     loaders: [
       {
