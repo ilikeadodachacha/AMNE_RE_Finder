@@ -1,6 +1,9 @@
 import React from 'react';
 import { bindAll } from 'lodash';
 import axios from 'axios';
+const removeDuplicateAgencies = require('./helpers/removeDuplicateAgencies');
+const sumDistances = require('./helpers/sumDistances');
+const sortAgencyListByDistance = require('./helpers/sortAgencyListByDistance');
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -8,9 +11,9 @@ class Dashboard extends React.Component {
     this.state = {
       addr1: '',
       addr2: '',
-      agencies: ''
+      agenciesSortedByDistance: ''
     }
-    bindAll(this, 'handleChange', 'getCoordinates', 'getNearbyAgencies');
+    bindAll(this, 'handleChange', 'getCoordinates', 'getNearbyAgencies', 'getDistances');
   }
 
   handleChange(e) {
@@ -29,16 +32,48 @@ class Dashboard extends React.Component {
     const coord2 = axios.get(url, { params: { address: this.state.addr2 } });
     axios.all([coord1, coord2])
       .then(coords => {
-        const latLngs = coords.map(coord => coord.data.results[0].geometry.location);
+        const latLngs = coords.map(coord => Object.values(coord.data.results[0].geometry.location).join(','));
         this.getNearbyAgencies(latLngs);
-      });
+      })
+      .catch(e => console.log(e));
   }
 
   getNearbyAgencies(latLngs) {
-    console.log(latLngs);
+    const url = '/api/place/nearbysearch/json';
+    const nearbyAgencies1 = axios.get(url, { params: { location: latLngs[0] } });
+    const nearbyAgencies2 = axios.get(url, { params: { location: latLngs[1] } });
+
+    axios.all([nearbyAgencies1, nearbyAgencies2])
+      .then(nearbyAgencies => {
+        return nearbyAgencies.map((agency) => {return agency.data});
+      })
+      .then((agencyLists) => {
+        this.getDistances(agencyLists);
+      })
+      .catch(e => console.log(e));
+  }
+
+  getDistances(agencyLists) {
+    const url = '/api/distancematrix/json';
+    const agencyList = agencyLists[0].concat(agencyLists[1]);
+    const uniqueAgencyList = removeDuplicateAgencies(agencyList);
+    const addrOrigins = `${this.state.addr1}|${this.state.addr2}`;
+    const agencyAddresses = uniqueAgencyList.map((list) => list.vicinity);
+    const agencyAddressesURL = agencyAddresses.join('|');
+
+    const agencyDistances = axios.get(url, { params: { origins: addrOrigins, destinations: agencyAddressesURL, units: 'imperial' } });
+    agencyDistances
+      .then((response) => {
+        return sumDistances(response.data.rows);
+      })
+      .then((summedDistances) => {
+        const sortedAgencyListByDistance = sortAgencyListByDistance(uniqueAgencyList, summedDistances);
+        this.setState({ agenciesSortedByDistance: sortedAgencyListByDistance});
+      })
   }
 
   render() {
+    const { agenciesSortedByDistance } = this.state;
     return (
       <div> 
         <form className="Search-form" onSubmit={this.getCoordinates}>
@@ -46,6 +81,15 @@ class Dashboard extends React.Component {
           Address 2: <input type="text" name="addr2" value={this.state.addr2} onChange={this.handleChange}/><br />
           <input type="submit" />
         </form>
+      
+      
+        {agenciesSortedByDistance ?
+          agenciesSortedByDistance.map((agency) => (
+            <div key={agency.id}>{`${agency.name} | ${agency.vicinity} | ${agency.distance} miles away`}</div>
+          )
+          ) : 
+          <div></div>
+        }
       </div>
     )
   }

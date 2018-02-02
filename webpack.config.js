@@ -10,7 +10,7 @@ const config = {
     inline: true,
     port: 8080,
     proxy: {
-      '/api/geocode': {
+      '/api': {
         target: 'http://localhost:9090',
         changeOrigin: true,
       },
