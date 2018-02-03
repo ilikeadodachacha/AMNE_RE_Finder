@@ -6,6 +6,6 @@ const sortAgencyListByDistance = (agencyList, distances) => {
   return copy.sort((a, b) => {
     return a.distance - b.distance;
   });
-}
+};
 
 module.exports = sortAgencyListByDistance;

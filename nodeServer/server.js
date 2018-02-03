@@ -27,33 +27,45 @@ app.get(/geocode/, (req, res) => {
 
 app.get(/place/, (req, res) => {
   let agencyArr = [];
-  // let pageToken = '';
-  // const nearbySearchURL = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+  const nearbySearchURL = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
   const config = {
     radius: '16000',
     type: 'real_estate_agency',
     key: gMaps.key,
   };
   
-  // const getAgencies = async (url) => {
-  //   const agencies = await axios.get(url);
-  //   return agencies;
-  // };
-
   const recordData = (data) => {
-    agencyArr = agencyArr.concat(data.results);
-    if (data.next_page_token) {
-      return data.next_page_token;
-    }
-    return 'end';
+    agencyArr = agencyArr.concat(data);
   };
 
-  axios.get(`${gMaps.URL}${req.url}`, { params: config })
-    .then((response) => {
-      recordData(response.data);
+  const waitThenCall = async (url) => {
+    await new Promise((resolve) => {
+      setTimeout(() => { resolve(); }, 2000);
+    });
+    const gAPICall = await axios.get(url).catch(e => console.log(e));
+
+    recordData(gAPICall.data.results);
+
+    if (gAPICall.data.next_page_token) {
+      waitThenCall(`${nearbySearchURL}?pagetoken=${gAPICall.data.next_page_token}&key=${gMaps.key}`);
+    }
+    return 'done';
+  };
+
+  const getAgencies = async () => {
+    const initCall = await axios.get(`${gMaps.URL}${req.url}`, { params: config });
+    recordData(initCall.data.results);
+    if (initCall.data.next_page_token) {
+      await waitThenCall(`${nearbySearchURL}?pagetoken=${initCall.data.next_page_token}&key=${gMaps.key}`);
+      await new Promise((resolve) => {
+        setTimeout(() => { resolve() }, 4000)
+      });
+
       res.json(agencyArr);
-    })
-    .catch(e => res.end(e));
+    }
+  };
+
+  getAgencies();
 });
 
 app.get(/distancematrix/, (req, res) => {

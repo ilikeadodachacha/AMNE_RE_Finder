@@ -4,6 +4,7 @@ import axios from 'axios';
 const removeDuplicateAgencies = require('./helpers/removeDuplicateAgencies');
 const sumDistances = require('./helpers/sumDistances');
 const sortAgencyListByDistance = require('./helpers/sortAgencyListByDistance');
+const createURLBatches = require('./helpers/createURLBatches');
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -43,7 +44,7 @@ class Dashboard extends React.Component {
     const nearbyAgencies1 = axios.get(url, { params: { location: latLngs[0] } });
     const nearbyAgencies2 = axios.get(url, { params: { location: latLngs[1] } });
 
-    axios.all([nearbyAgencies1, nearbyAgencies2])
+    Promise.all([nearbyAgencies1, nearbyAgencies2])
       .then(nearbyAgencies => {
         return nearbyAgencies.map((agency) => {return agency.data});
       })
@@ -59,17 +60,26 @@ class Dashboard extends React.Component {
     const uniqueAgencyList = removeDuplicateAgencies(agencyList);
     const addrOrigins = `${this.state.addr1}|${this.state.addr2}`;
     const agencyAddresses = uniqueAgencyList.map((list) => list.vicinity);
-    const agencyAddressesURL = agencyAddresses.join('|');
+    const agencyAddressesURLs = createURLBatches(agencyAddresses);
+    
+    const agencyDistances = agencyAddressesURLs.map((URL) => {
+      return axios.get(url, { params: { origins: addrOrigins, destinations: URL, units: 'imperial' } });
+    })
+    
+    Promise.all(agencyDistances)
+      .then((responses) => {
+        const summedDistances = responses.reduce((arr, distances) => {
+          const rows = distances.data.rows;
+          return arr.concat(sumDistances(rows));
+        }, []);
 
-    const agencyDistances = axios.get(url, { params: { origins: addrOrigins, destinations: agencyAddressesURL, units: 'imperial' } });
-    agencyDistances
-      .then((response) => {
-        return sumDistances(response.data.rows);
+        return summedDistances;
       })
       .then((summedDistances) => {
         const sortedAgencyListByDistance = sortAgencyListByDistance(uniqueAgencyList, summedDistances);
         this.setState({ agenciesSortedByDistance: sortedAgencyListByDistance});
       })
+      .catch(e => console.log(e));
   }
 
   render() {
@@ -85,7 +95,7 @@ class Dashboard extends React.Component {
       
         {agenciesSortedByDistance ?
           agenciesSortedByDistance.map((agency) => (
-            <div key={agency.id}>{`${agency.name} | ${agency.vicinity} | ${agency.distance} miles away`}</div>
+            <div key={agency.id}>{`${agency.name} | ${agency.vicinity} | Combined Distance: ${agency.distance} miles`}</div>
           )
           ) : 
           <div></div>
