@@ -8,7 +8,9 @@ const config = {
   devServer: {
     contentBase: './public',
     inline: true,
+    host: '0.0.0.0',
     port: 8080,
+    disableHostCheck: true,
     proxy: {
       '/api': {
         target: 'http://localhost:9090',

@@ -2,16 +2,17 @@
 
 To run this app locally:
 
-1. Get a gMaps api key at https://developers.google.com/maps/documentation/javascript/get-api-key
-2. Enable the following 3 API's for your key:
+1. Clone repo and run npm install
+2. Get a gMaps api key at https://developers.google.com/maps/documentation/javascript/get-api-key
+3. Enable the following 3 API's for your key:
     - Google Maps Geocoding API
     - Google Places API Web Service
     - Google Maps Distance Matrix
-3. Create a .env file using .env.example as guideline and paste your google API key under "GMAPS_API_KEY"
-4. Open 2 terminal instances from the root of this project: 
+4. Create a .env file using .env.example as guideline and paste your google API key under "GMAPS_API_KEY"
+5. Open 2 terminal instances from the root of this project: 
     - in one run the command "npm start"
     - in the other run "node ./nodeServer/server.js"
-5. You can now access the project at http://localhost:8080
+6. You can now access the project at http://localhost:8080
 
 
 General flow:
